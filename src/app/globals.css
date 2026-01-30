@@ -1,0 +1,198 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  /* Fonts */
+  --font-sans: var(--font-noto), var(--font-nunito), sans-serif;
+  --font-mono: monospace;
+
+  /* Colors - Pastel Pop Palette */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-dark: var(--primary-dark);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  
+  --color-success: var(--success);
+  
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Clay Shadows */
+  --shadow-clay-out: 8px 8px 16px #D1D9E6, -8px -8px 16px #FFFFFF;
+  --shadow-clay-in: inset 6px 6px 12px #D1D9E6, inset -6px -6px 12px #FFFFFF;
+  --shadow-clay-active: inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF;
+
+  /* Radius */
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 8px;
+}
+
+:root {
+  /* Base Colors */
+  --background: #F0F4F8; /* --bg-color */
+  --foreground: #4A5568; /* --text-main */
+
+  /* Primary (Coral Pink) */
+  --primary: #FF8C94;
+  --primary-foreground: #FFFFFF;
+  --primary-dark: #FF7B85;
+
+  /* Secondary (Sky Blue) */
+  --secondary: #84CEEB;
+  --secondary-foreground: #FFFFFF;
+
+  /* Accent (Lemon) */
+  --accent: #F6E980;
+  --accent-foreground: #4A5568;
+
+  /* Destructive (Red) */
+  --destructive: #FC8181; /* --danger */
+  --destructive-foreground: #FFFFFF;
+
+  /* Success (Mint) */
+  --success: #88D8B0;
+
+  /* Muted (Grayish) */
+  --muted: #E2E8F0;
+  --muted-foreground: #A0AEC0; /* --text-light */
+
+  /* Components */
+  --card: #F0F4F8;
+  --card-foreground: #4A5568;
+  
+  --popover: #F0F4F8;
+  --popover-foreground: #4A5568;
+
+  --border: rgba(255, 255, 255, 0.4);
+  --input: #F0F4F8;
+  --ring: #FF8C94;
+
+  --radius: 1rem; /* 16px base for Shadcn */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  table {
+    display: table;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tbody {
+    display: table-row-group;
+  }
+  tr {
+    display: table-row;
+  }
+  th,
+  td {
+    display: table-cell;
+  }
+}
+
+/* DayPicker v9 alignment fix */
+.rdp-month_grid {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.rdp-weekdays,
+.rdp-week {
+  display: table-row;
+}
+
+.rdp-weekday,
+.rdp-day {
+  display: table-cell;
+  width: 14.285%;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.rdp-day_button {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+}
+
+.rdp-selected .rdp-day_button {
+  background-color: var(--primary);
+  color: #fff;
+  border-radius: 10px;
+  box-shadow: var(--clay-shadow-out);
+}
+
+button,
+[role="button"],
+a,
+label,
+select,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Custom Clay Utilities */
+@layer utilities {
+  .clay-card {
+    @apply bg-card rounded-[24px] shadow-clay-out border-2 border-white/40;
+  }
+  
+  .clay-btn {
+    @apply bg-background text-primary font-bold px-6 py-3 rounded-[16px] shadow-clay-out border-none cursor-pointer inline-flex items-center justify-center gap-2 transition-all duration-100;
+  }
+
+  .clay-btn:active {
+    @apply shadow-clay-active scale-95;
+  }
+  
+  .clay-btn-primary {
+    @apply bg-primary text-primary-foreground shadow-[6px_6px_12px_rgba(255,140,148,0.4),-6px_-6px_12px_rgba(255,255,255,0.8)];
+  }
+  
+  .clay-input {
+    @apply w-full p-4 rounded-[16px] border-none bg-background shadow-clay-in text-foreground outline-none mb-4 transition-all duration-200;
+  }
+  
+  .clay-input:focus {
+    @apply shadow-[inset_8px_8px_16px_#D1D9E6,inset_-8px_-8px_16px_#FFFFFF];
+  }
+}
