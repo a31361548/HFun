@@ -19,7 +19,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "HealthFun - Personal Health Manager",
+  title: "HAVA",
   description: "Interactive Claymorphism Health Dashboard",
 };
 
