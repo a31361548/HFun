@@ -8,6 +8,7 @@ import type { IUser, UserRole, UserStatus } from "@/types";
 
 type MemberInput = {
   name: string;
+  username: string;
   status: UserStatus;
   role: UserRole;
   password?: string;
@@ -73,11 +74,10 @@ export async function createMember(input: MemberInput): Promise<IUser> {
   await requireAdminUserId();
   await connectDB();
 
-  const username = `${input.name.replace(/\s+/g, "").toLowerCase()}_${Date.now()}`;
   const passwordHash = input.password ? await bcrypt.hash(input.password, 10) : "";
 
   const created = await User.create({
-    username,
+    username: input.username,
     passwordHash,
     name: input.name,
     avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${input.name}`,
@@ -90,7 +90,7 @@ export async function createMember(input: MemberInput): Promise<IUser> {
 
 export async function updateMember(
   memberId: string,
-  input: MemberInput
+  input: Omit<MemberInput, "username">
 ): Promise<IUser> {
   await requireAdminUserId();
   await connectDB();

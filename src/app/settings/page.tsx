@@ -5,7 +5,7 @@ import Cropper from "react-easy-crop";
 import { UploadCloud, ShieldCheck } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { updateProfile, changePassword } from "@/actions/profile";
+import { checkUsernameAvailable, updateProfile, changePassword } from "@/actions/profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,8 +55,10 @@ export default function SettingsPage() {
   const status = sessionResult?.status ?? "loading";
   const userName = session?.user?.name ?? "";
   const userAvatar = session?.user?.image ?? "";
+  const userUsername = session?.user?.email ?? "";
 
   const [name, setName] = useState(userName);
+  const [username, setUsername] = useState(userUsername);
   const [avatarPreview, setAvatarPreview] = useState(userAvatar);
   const [avatarSource, setAvatarSource] = useState<string | null>(null);
   const [avatarZoom, setAvatarZoom] = useState(1);
@@ -64,27 +66,77 @@ export default function SettingsPage() {
   const [avatarCropPixels, setAvatarCropPixels] = useState({ width: 240, height: 240 });
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
+  const [usernameMessage, setUsernameMessage] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
 
   useEffect(() => {
     if (status === "loading") return;
     setName(userName);
+    setUsername(userUsername);
     setAvatarPreview(userAvatar);
-  }, [status, userName, userAvatar]);
+    setUsernameStatus("idle");
+    setUsernameMessage("");
+  }, [status, userName, userUsername, userAvatar]);
 
-  const canSubmitProfile = useMemo(() => name.trim().length > 0, [name]);
+  const canSubmitProfile = useMemo(
+    () => name.trim().length > 0 && username.trim().length > 0,
+    [name, username]
+  );
 
 
-const handleCropComplete = useCallback(
-  (_: unknown, croppedAreaPixels: { width: number; height: number }) => {
-    setAvatarCropPixels(croppedAreaPixels);
-  },
-  []
-);
+  const handleCropComplete = useCallback(
+    (_: unknown, croppedAreaPixels: { width: number; height: number }) => {
+      setAvatarCropPixels(croppedAreaPixels);
+    },
+    []
+  );
 
+  useEffect(() => {
+    if (status === "loading") return;
+    const nextUsername = username.trim();
+
+    if (!nextUsername) {
+      setUsernameStatus("idle");
+      setUsernameMessage("帳號不可為空");
+      return;
+    }
+
+    if (nextUsername === userUsername) {
+      setUsernameStatus("idle");
+      setUsernameMessage("");
+      return;
+    }
+
+    setUsernameStatus("checking");
+    setUsernameMessage("帳號檢查中...");
+
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const available = await checkUsernameAvailable(nextUsername);
+          if (available) {
+            setUsernameStatus("available");
+            setUsernameMessage("此帳號可使用");
+          } else {
+            setUsernameStatus("taken");
+            setUsernameMessage("此帳號已被使用");
+          }
+        } catch (error) {
+          setUsernameStatus("taken");
+          setUsernameMessage("帳號檢查失敗");
+        }
+      })();
+    }, 1500);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [status, username, userUsername]);
 
   const handleAvatarFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -120,7 +172,17 @@ const handleCropComplete = useCallback(
 
   const handleSaveProfile = async () => {
     if (!canSubmitProfile) {
-      toast.error("請輸入姓名");
+      toast.error("請輸入姓名與帳號");
+      return;
+    }
+
+    if (usernameStatus === "checking") {
+      toast.error("帳號檢查中，請稍候");
+      return;
+    }
+
+    if (usernameStatus === "taken") {
+      toast.error("帳號已被使用");
       return;
     }
 
@@ -130,24 +192,34 @@ const handleCropComplete = useCallback(
         ? await toCroppedImage(avatarSource, avatarCrop, avatarZoom, avatarCropPixels)
         : avatarPreview;
 
-      const updated = await updateProfile({ name: name.trim(), avatar: nextAvatar });
+      const updated = await updateProfile({
+        name: name.trim(),
+        username: username.trim(),
+        avatar: nextAvatar,
+      });
       await sessionResult.update({
         ...session,
         user: {
           ...session?.user,
           name: updated.name,
+          email: updated.username,
           image: updated.avatar,
         },
       });
       setAvatarPreview(updated.avatar);
       setAvatarSource(null);
       toast.success("個人資訊已更新");
-    } catch (error) {
-      toast.error("更新失敗，請稍後再試");
-    } finally {
-      setIsSavingProfile(false);
-    }
-  };
+      } catch (error) {
+        if (error instanceof Error && error.message === "USERNAME_TAKEN") {
+          toast.error("帳號已被使用");
+        } else {
+          toast.error("更新失敗，請稍後再試");
+        }
+      } finally {
+        setIsSavingProfile(false);
+      }
+    };
+
 
   const handleChangePassword = async () => {
     if (!currentPassword.trim() || !newPassword.trim()) {
@@ -243,6 +315,28 @@ const handleCropComplete = useCallback(
             )}
 
             <div className="space-y-2">
+              <label className="text-sm font-bold text-text-light">帳號</label>
+              <Input
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="輸入帳號"
+                className="rounded-2xl"
+              />
+              {usernameMessage && (
+                <p
+                  className={`text-xs font-bold ${
+                    usernameStatus === "available"
+                      ? "text-emerald-600"
+                      : usernameStatus === "taken"
+                        ? "text-destructive"
+                        : "text-text-light"
+                  }`}
+                >
+                  {usernameMessage}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
               <label className="text-sm font-bold text-text-light">顯示名稱</label>
               <Input
                 value={name}
@@ -255,7 +349,12 @@ const handleCropComplete = useCallback(
               variant="primary"
               className="w-full"
               onClick={handleSaveProfile}
-              disabled={isSavingProfile || status === "loading"}
+              disabled={
+                isSavingProfile ||
+                status === "loading" ||
+                usernameStatus === "taken" ||
+                usernameStatus === "checking"
+              }
             >
               {isSavingProfile ? "儲存中..." : "儲存個人資訊"}
             </Button>

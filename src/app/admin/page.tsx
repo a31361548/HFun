@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { UserPlus, Edit2, Trash2, AlertTriangle, UserRound } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { createMember, deleteMember, getMembers, updateMember } from "@/actions/members";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,9 @@ import { ROLE_OPTIONS, STATUS_OPTIONS } from "@/lib/mock-data";
 import type { IUser, UserRole, UserStatus } from "@/types";
 
 export default function AdminPage() {
+  const { data: session, status } = useSession();
+  const role = session?.user?.role;
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -39,6 +43,8 @@ export default function AdminPage() {
   const [formName, setFormName] = useState("");
   const [formRole, setFormRole] = useState<UserRole>("Member");
   const [formStatus, setFormStatus] = useState<UserStatus>("Active");
+  const [formUsername, setFormUsername] = useState("");
+  const [formPassword, setFormPassword] = useState("");
   const [editFormName, setEditFormName] = useState("");
   const [editFormRole, setEditFormRole] = useState<UserRole>("Member");
   const [editFormStatus, setEditFormStatus] = useState<UserStatus>("Active");
@@ -68,6 +74,8 @@ export default function AdminPage() {
       setFormName("");
       setFormRole("Member");
       setFormStatus("Active");
+      setFormUsername("");
+      setFormPassword("");
     }
   }, [isAddOpen]);
 
@@ -111,9 +119,40 @@ export default function AdminPage() {
     setIsEditOpen(true);
   };
 
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-text-light font-bold">
+        權限載入中...
+      </div>
+    );
+  }
+
+  if (role !== "Admin") {
+    return (
+      <div className="clay-card bg-destructive/10 border border-destructive/20 text-destructive px-6 py-5 rounded-2xl font-bold">
+        權限不足，無法進入後台管理。
+      </div>
+    );
+  }
+
   const handleCreateMember = async () => {
     if (!formName.trim()) {
       toast.error("請輸入會員姓名");
+      return;
+    }
+
+    if (!formUsername.trim()) {
+      toast.error("請輸入帳號");
+      return;
+    }
+
+    if (!formPassword.trim()) {
+      toast.error("請輸入預設密碼");
+      return;
+    }
+
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(formPassword)) {
+      toast.error("密碼需含英數且至少 8 碼");
       return;
     }
 
@@ -121,8 +160,10 @@ export default function AdminPage() {
     try {
       const created = await createMember({
         name: formName.trim(),
+        username: formUsername.trim(),
         role: formRole,
         status: formStatus,
+        password: formPassword.trim(),
       });
       setMembers((prev) => [created, ...prev]);
       toast.success("會員已新增");
@@ -280,6 +321,13 @@ export default function AdminPage() {
                 onChange={(event) => setFormName(event.target.value)}
                 disabled={isSaving}
               />
+              <Input
+                placeholder="帳號"
+                className="rounded-2xl"
+                value={formUsername}
+                onChange={(event) => setFormUsername(event.target.value)}
+                disabled={isSaving}
+              />
               <Select value={formStatus} onValueChange={(value) => setFormStatus(value as UserStatus)}>
                 <SelectTrigger className="rounded-2xl">
                   <SelectValue placeholder="狀態" />
@@ -304,6 +352,14 @@ export default function AdminPage() {
                   ))}
                 </SelectContent>
               </Select>
+              <Input
+                type="password"
+                placeholder="預設密碼（需含英數且至少 8 碼）"
+                className="rounded-2xl"
+                value={formPassword}
+                onChange={(event) => setFormPassword(event.target.value)}
+                disabled={isSaving}
+              />
             </div>
             <DialogFooter className="flex gap-3 mt-6 sm:justify-center">
               <Button variant="secondary" onClick={() => setIsAddOpen(false)} className="flex-1" disabled={isSaving}>

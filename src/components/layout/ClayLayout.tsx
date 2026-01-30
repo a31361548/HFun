@@ -5,7 +5,7 @@ import Link from "next/link";
 import { LayoutGrid, PlusCircle, TrendingUp, Users, LogOut, CalendarDays, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import ProtectedRoute from "@/components/providers/ProtectedRoute";
 
 const NAV_ITEMS = [
@@ -19,6 +19,9 @@ const NAV_ITEMS = [
 
 export default function ClayLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const role = session?.user?.role;
+  const navItems = role === "Admin" ? NAV_ITEMS : NAV_ITEMS.filter((item) => item.id !== "admin");
 
   // Hide layout on login page
   if (pathname === "/login") {
@@ -45,7 +48,7 @@ export default function ClayLayout({ children }: { children: React.ReactNode }) 
 
               {/* Nav Links */}
               <nav className="flex flex-col gap-4 flex-1">
-                {NAV_ITEMS.map((item) => {
+                {navItems.map((item) => {
                   const isActive = pathname === item.href;
                   return (
                     <Link
@@ -75,7 +78,7 @@ export default function ClayLayout({ children }: { children: React.ReactNode }) 
 
         {/* Mobile Nav */}
         <nav className="md:hidden fixed bottom-6 left-6 right-6 h-[70px] bg-background rounded-[32px] shadow-[0_10px_30px_rgba(0,0,0,0.1)] border-2 border-white/50 flex justify-around items-center z-50 px-2">
-          {NAV_ITEMS.filter(i => i.id !== 'trends' && i.id !== 'admin').map((item) => {
+          {navItems.filter((item) => item.id !== "trends").map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link

@@ -9,6 +9,7 @@ const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 
 type ProfileInput = {
   name: string;
+  username: string;
   avatar?: string | null;
 };
 
@@ -23,16 +24,27 @@ const requireUserId = async (): Promise<string> => {
   return userId;
 };
 
-export async function updateProfile(input: ProfileInput): Promise<{ name: string; avatar: string }>
-{
+export async function updateProfile(
+  input: ProfileInput
+): Promise<{ name: string; username: string; avatar: string }> {
   const userId = await requireUserId();
   await connectDB();
+
+  const existing = await User.findOne({
+    username: input.username,
+    _id: { $ne: userId },
+  }).lean();
+
+  if (existing) {
+    throw new Error("USERNAME_TAKEN");
+  }
 
   const updated = await User.findByIdAndUpdate(
     userId,
     {
       $set: {
         name: input.name,
+        username: input.username,
         avatar: input.avatar ?? "",
       },
     },
@@ -43,7 +55,19 @@ export async function updateProfile(input: ProfileInput): Promise<{ name: string
     throw new Error("NOT_FOUND");
   }
 
-  return { name: updated.name, avatar: updated.avatar };
+  return { name: updated.name, username: updated.username, avatar: updated.avatar };
+}
+
+export async function checkUsernameAvailable(username: string): Promise<boolean> {
+  const userId = await requireUserId();
+  await connectDB();
+
+  const existing = await User.findOne({
+    username,
+    _id: { $ne: userId },
+  }).lean();
+
+  return !existing;
 }
 
 type ChangePasswordInput = {
