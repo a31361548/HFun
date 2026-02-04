@@ -303,7 +303,7 @@ export default function AdminPage() {
 
       {/* Add Member Modal */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogContent className="clay-card bg-background border-2 border-white/50 max-w-sm sm:rounded-[24px]">
+          <DialogContent className="clay-card bg-background border-2 border-white/50 max-w-[calc(100%-2rem)] sm:max-w-sm sm:rounded-[24px]">
             <DialogHeader className="flex flex-col items-center gap-4">
               <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                 <UserPlus size={28} />
@@ -375,7 +375,7 @@ export default function AdminPage() {
 
       {/* Edit Member Modal */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="clay-card bg-background border-2 border-white/50 max-w-sm sm:rounded-[24px]">
+          <DialogContent className="clay-card bg-background border-2 border-white/50 max-w-[calc(100%-2rem)] sm:max-w-sm sm:rounded-[24px]">
             <DialogHeader className="flex flex-col items-center gap-4">
               <div className="h-14 w-14 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
                 <UserRound size={28} />
@@ -440,7 +440,7 @@ export default function AdminPage() {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="clay-card bg-background border-2 border-white/50 max-w-sm text-center sm:rounded-[24px]">
+          <DialogContent className="clay-card bg-background border-2 border-white/50 max-w-[calc(100%-2rem)] sm:max-w-sm text-center sm:rounded-[24px]">
             <DialogHeader className="flex flex-col items-center gap-4">
                <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center text-destructive">
                 <AlertTriangle size={32} />

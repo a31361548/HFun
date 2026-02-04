@@ -496,7 +496,7 @@ export default function LoggingPage() {
 
       {/* Dynamic Dialog */}
       <Dialog open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
-        <DialogContent className="clay-card bg-background border-2 border-white/50 max-w-sm sm:max-w-md sm:rounded-[32px]">
+        <DialogContent className="clay-card bg-background border-2 border-white/50 max-w-[calc(100%-2rem)] sm:max-w-md sm:rounded-[32px]">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-center mb-4">
               {ACTIONS.find(a => a.id === selectedLog)?.title}

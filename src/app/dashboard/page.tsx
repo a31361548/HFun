@@ -310,7 +310,7 @@ export default function DashboardPage() {
 
         {/* Water Settings Dialog */}
         <Dialog open={isWaterSettingOpen} onOpenChange={setIsWaterSettingOpen}>
-          <DialogContent className="clay-card bg-background border-2 border-white/50 max-w-sm sm:rounded-[24px]">
+          <DialogContent className="clay-card bg-background border-2 border-white/50 max-w-[calc(100%-2rem)] sm:max-w-sm sm:rounded-[24px]">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black text-foreground">水量設定</DialogTitle>
             </DialogHeader>
