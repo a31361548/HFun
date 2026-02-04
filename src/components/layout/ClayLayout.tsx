@@ -34,7 +34,7 @@ export default function ClayLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen bg-background text-foreground overflow-hidden">
+      <div className="flex min-h-screen bg-background text-foreground">
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex w-[280px] flex-col gap-10 p-10 fixed top-0 bottom-0 left-0 z-50">
           <div className="clay-card h-full flex flex-col items-stretch p-6">
@@ -99,7 +99,7 @@ export default function ClayLayout({ children }: { children: React.ReactNode }) 
         </nav>
 
         {/* Main Content Area */}
-        <main className="flex-1 md:ml-[280px] h-screen overflow-y-auto p-6 pb-[120px] md:p-10 scroll-smooth">
+        <main className="flex-1 md:ml-[280px] p-6 pb-[120px] md:p-10">
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}
