@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -15,6 +16,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("remembered_username");
+    if (savedUsername) {
+      setUsername(savedUsername);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,10 +42,16 @@ export default function LoginPage() {
       const result = await signIn("credentials", {
         username: username.trim(),
         password: password.trim(),
+        remember: rememberMe ? "true" : "false",
         redirect: false,
       });
 
       if (!result?.error) {
+        if (rememberMe) {
+          localStorage.setItem("remembered_username", username.trim());
+        } else {
+          localStorage.removeItem("remembered_username");
+        }
         toast.success("登入成功，歡迎回來！");
         router.push("/dashboard");
         return;
@@ -82,19 +99,40 @@ export default function LoginPage() {
                 className="font-bold text-foreground"
                 disabled={isSubmitting}
               />
-              <Input
-                type="password"
-                placeholder="密碼 / Password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                disabled={isSubmitting}
-              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="密碼 / Password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={isSubmitting}
+                  className="pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-text-light transition-colors hover:text-foreground"
+                  aria-label={showPassword ? "隱藏密碼" : "顯示密碼"}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              <label className="flex items-center gap-3 text-sm font-bold text-foreground">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-border text-primary accent-primary"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                  disabled={isSubmitting}
+                />
+                記住我
+              </label>
               {loginError && (
                 <div className="clay-card bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-2xl font-bold">
                   帳號或密碼錯誤，請再試一次。
                 </div>
               )}
-              
+
               <Button type="submit" variant="primary" size="lg" className="w-full text-lg" disabled={isSubmitting}>
                 {isSubmitting ? "登入中..." : "開始旅程 (Login)"}
               </Button>
